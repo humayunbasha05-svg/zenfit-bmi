@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ZenFit BMI Calculator</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f172a,#1e3a5f);min-height:100vh;padding:24px 16px}
+  .wrap{max-width:480px;margin:0 auto}
+  h1{color:#f8fafc;font-size:26px;font-weight:700;text-align:center}
+  .sub{color:#94a3b8;font-size:13px;margin-top:4px;text-align:center}
+  .tm{color:#64748b;font-size:11px;margin-top:4px;text-align:center}
+  .card{background:#fff;border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);margin-top:20px}
+  .toggle{display:flex;background:#f1f5f9;border-radius:10px;padding:3px;margin-bottom:20px}
+  .toggle button{flex:1;padding:8px 0;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s}
+  .toggle button.active{background:#3b82f6;color:#fff}
+  .toggle button:not(.active){background:transparent;color:#64748b}
+  label.lbl{font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px}
+  .gender-row{display:flex;gap:10px;margin-bottom:16px}
+  .gender-row button{flex:1;padding:10px 0;border-radius:10px;border:2px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:14px;transition:all .2s}
+  .gender-row button.active{border-color:#3b82f6;background:#eff6ff;color:#2563eb}
+  input[type=number]{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:15px;margin-bottom:16px;outline:none;font-family:inherit}
+  .ht-row{display:flex;gap:10px;margin-bottom:16px}
+  .ht-row input{flex:1;padding:10px 14px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:15px;outline:none;font-family:inherit;margin-bottom:0}
+  .calc-btn{width:100%;padding:13px 0;border-radius:12px;border:none;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.5px}
+  #gauge-wrap{text-align:center}
+  #gauge{width:100%;max-width:280px}
+  .bmi-val{font-size:48px;font-weight:800;text-align:center}
+  .bmi-lbl{font-size:13px;color:#94a3b8;text-align:center;margin-top:2px}
+  .badge{display:inline-block;margin-top:6px;padding:4px 16px;border-radius:20px;font-weight:700;font-size:14px}
+  .scale{display:flex;gap:4px;margin:16px 0}
+  .scale-item{flex:1;text-align:center}
+  .scale-bar{height:6px;border-radius:4px;margin-bottom:4px}
+  .scale-name{font-size:9px;color:#94a3b8;font-weight:600}
+  .scale-range{font-size:9px;color:#cbd5e1}
+  .iw-box{background:#f8fafc;border-radius:14px;padding:16px;margin-bottom:12px}
+  .iw-title{font-size:12px;font-weight:700;color:#475569;margin-bottom:10px}
+  .iw-row{display:flex;justify-content:space-between;align-items:center}
+  .iw-col{text-align:center}
+  .iw-col .mini{font-size:11px;color:#94a3b8}
+  .iw-col .val{font-weight:700;color:#22c55e}
+  .iw-col .main-val{font-weight:800;font-size:18px;color:#3b82f6}
+  .iw-col .sub-val{font-size:10px;color:#94a3b8}
+  .delta{text-align:center;margin-top:10px;font-size:12px;color:#64748b}
+  .age-note{background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:12px}
+  .disclaimer{font-size:11px;color:#cbd5e1;text-align:center}
+  .copy{font-size:11px;color:#cbd5e1;text-align:center;margin-top:8px}
+  #result-card{display:none;background:#fff;border-radius:20px;padding:24px;margin-top:16px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="text-align:center;margin-bottom:20px">
+    <h1>ZenFit BMI Calculator</h1>
+    <p class="sub">Advanced · Age &amp; Gender Aware</p>
+    <p class="tm">ZenFit&#8482; &mdash; Your Wellness, Simplified.</p>
+  </div>
+
+  <div class="card">
+    <div class="toggle">
+      <button id="btn-metric" class="active" onclick="setUnit('metric')">Metric</button>
+      <button id="btn-imperial" onclick="setUnit('imperial')">Imperial</button>
+    </div>
+
+    <label class="lbl">GENDER</label>
+    <div class="gender-row">
+      <button id="btn-male" class="active" onclick="setGender('male')">&#9794; Male</button>
+      <button id="btn-female" onclick="setGender('female')">&#9792; Female</button>
+    </div>
+
+    <label class="lbl">AGE</label>
+    <input type="number" id="age" placeholder="e.g. 28"/>
+
+    <label class="lbl">HEIGHT</label>
+    <div id="height-metric">
+      <input type="number" id="hcm" placeholder="cm, e.g. 170"/>
+    </div>
+    <div id="height-imperial" style="display:none">
+      <div class="ht-row">
+        <input type="number" id="hft" placeholder="ft"/>
+        <input type="number" id="hin" placeholder="in"/>
+      </div>
+    </div>
+
+    <label class="lbl" id="wlbl">WEIGHT (kg)</label>
+    <input type="number" id="weight" placeholder="kg, e.g. 70"/>
+
+    <button class="calc-btn" onclick="calculate()">Calculate BMI</button>
+  </div>
+
+  <div id="result-card">
+    <div id="gauge-wrap"><svg id="gauge" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="bmi-val" id="bmi-val"></div>
+    <div class="bmi-lbl">BMI Score</div>
+    <div style="text-align:center"><span class="badge" id="bmi-badge"></span></div>
+    <div class="scale">
+      <div class="scale-item"><div class="scale-bar" style="background:#60a5fa"></div><div class="scale-name">Underweight</div><div class="scale-range">&lt;18.5</div></div>
+      <div class="scale-item"><div class="scale-bar" style="background:#4ade80"></div><div class="scale-name">Normal</div><div class="scale-range">18.5&ndash;24.9</div></div>
+      <div class="scale-item"><div class="scale-bar" style="background:#facc15"></div><div class="scale-name">Overweight</div><div class="scale-range">25&ndash;29.9</div></div>
+      <div class="scale-item"><div class="scale-bar" style="background:#f87171"></div><div class="scale-name">Obese</div><div class="scale-range">&ge;30</div></div>
+    </div>
+    <div class="iw-box">
+      <div class="iw-title">IDEAL WEIGHT RANGE</div>
+      <div class="iw-row">
+        <div class="iw-col"><div class="mini">Min</div><div class="val" id="iw-min"></div></div>
+        <div class="iw-col"><div class="mini">Ideal</div><div class="main-val" id="iw-ideal"></div><div class="sub-val" id="iw-bmi"></div></div>
+        <div class="iw-col"><div class="mini">Max</div><div class="val" id="iw-max"></div></div>
+      </div>
+      <div class="delta" id="iw-delta"></div>
+    </div>
+    <div class="age-note" id="age-note" style="display:none"></div>
+    <p class="disclaimer">BMI is a screening tool, not a medical diagnosis. Consult a healthcare professional for personalised advice.</p>
+    <p class="copy">&copy; <span id="yr"></span> ZenFit. All rights reserved.</p>
+  </div>
+</div>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+let unit = 'metric', gender = 'male';
+
+function setUnit(u) {
+  unit = u;
+  document.getElementById('btn-metric').className = u==='metric'?'active':'';
+  document.getElementById('btn-imperial').className = u==='imperial'?'active':'';
+  document.getElementById('height-metric').style.display = u==='metric'?'block':'none';
+  document.getElementById('height-imperial').style.display = u==='imperial'?'block':'none';
+  document.getElementById('wlbl').textContent = 'WEIGHT (' + (u==='metric'?'kg':'lb') + ')';
+  document.getElementById('weight').placeholder = u==='metric'?'kg, e.g. 70':'lb, e.g. 154';
+  document.getElementById('result-card').style.display = 'none';
+}
+
+function setGender(g) {
+  gender = g;
+  document.getElementById('btn-male').className = g==='male'?'active':'';
+  document.getElementById('btn-female').className = g==='female'?'active':'';
+}
+
+function toXY(deg, r) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return [100 + r * Math.cos(rad), 100 + r * Math.sin(rad)];
+}
+
+function arcPath(a1, a2, r1, r2) {
+  const [x1,y1]=toXY(a1,r1),[x2,y2]=toXY(a2,r1);
+  const [x3,y3]=toXY(a2,r2),[x4,y4]=toXY(a1,r2);
+  const lg = (a2-a1)>180?1:0;
+  return 'M'+x1+','+y1+' A'+r1+','+r1+',0,'+lg+',1,'+x2+','+y2+' L'+x3+','+y3+' A'+r2+','+r2+',0,'+lg+',0,'+x4+','+y4+' Z';
+}
+
+function drawGauge(bmi) {
+  const svg = document.getElementById('gauge');
+  const zones = [{from:-150,to:-60,color:'#60a5fa'},{from:-60,to:30,color:'#4ade80'},{from:30,to:90,color:'#facc15'},{from:90,to:150,color:'#f87171'}];
+  let html = '';
+  zones.forEach(z => { html += '<path d="'+arcPath(z.from,z.to,80,90)+'" fill="'+z.color+'" opacity="0.9"/>'; });
+  const pct = Math.max(0, Math.min(1, (bmi-10)/35));
+  const angle = -150 + pct * 300;
+  const [nx,ny] = toXY(angle, 62);
+  html += '<circle cx="100" cy="100" r="6" fill="#1e293b"/>';
+  html += '<line x1="100" y1="100" x2="'+nx+'" y2="'+ny+'" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>';
+  html += '<circle cx="100" cy="100" r="3" fill="#f8fafc"/>';
+  svg.innerHTML = html;
+}
+
+function idealWeight(hCm) {
+  const inchesOver = (hCm / 2.54) - 60;
+  const base = gender === 'male' ? 50 : 45.5;
+  const ideal = Math.max(base + 2.3 * inchesOver, 30);
+  return { ideal, lo: ideal * 0.9, hi: ideal * 1.1 };
+}
+
+function fmt(kg) {
+  return unit === 'metric' ? kg.toFixed(1)+' kg' : (kg*2.20462).toFixed(1)+' lb';
+}
+
+function calculate() {
+  const age = parseInt(document.getElementById('age').value);
+  if (!age || age < 2 || age > 120) { alert('Enter a valid age (2-120).'); return; }
+  let hCm, wKg;
+  if (unit === 'metric') {
+    hCm = parseFloat(document.getElementById('hcm').value);
+    wKg = parseFloat(document.getElementById('weight').value);
+  } else {
+    const ft = parseFloat(document.getElementById('hft').value)||0;
+    const inch = parseFloat(document.getElementById('hin').value)||0;
+    hCm = (ft*12+inch)*2.54;
+    wKg = parseFloat(document.getElementById('weight').value)*0.453592;
+  }
+  if (!hCm||hCm<50||hCm>250){alert('Enter a valid height.');return;}
+  if (!wKg||wKg<10||wKg>500){alert('Enter a valid weight.');return;}
+
+  const bmi = wKg / Math.pow(hCm/100, 2);
+  const cats = [
+    {label:'Underweight',color:'#60a5fa',bg:'#eff6ff'},
+    {label:'Normal',color:'#22c55e',bg:'#f0fdf4'},
+    {label:'Overweight',color:'#eab308',bg:'#fefce8'},
+    {label:'Obese',color:'#ef4444',bg:'#fef2f2'}
+  ];
+  const ci = bmi<18.5?0:bmi<25?1:bmi<30?2:3;
+  const cat = cats[ci];
+
+  drawGauge(bmi);
+  document.getElementById('bmi-val').textContent = bmi.toFixed(1);
+  document.getElementById('bmi-val').style.color = cat.color;
+  const badge = document.getElementById('bmi-badge');
+  badge.textContent = cat.label;
+  badge.style.background = cat.bg;
+  badge.style.color = cat.color;
+
+  const iw = idealWeight(hCm);
+  document.getElementById('iw-min').textContent = fmt(iw.lo);
+  document.getElementById('iw-ideal').textContent = fmt(iw.ideal);
+  document.getElementById('iw-bmi').textContent = 'BMI ' + (iw.ideal/Math.pow(hCm/100,2)).toFixed(1);
+  document.getElementById('iw-max').textContent = fmt(iw.hi);
+
+  const diff = wKg - iw.ideal;
+  const deltaEl = document.getElementById('iw-delta');
+  if (Math.abs(diff) < 0.5) {
+    deltaEl.innerHTML = '<span style="color:#22c55e;font-weight:600">You are at your ideal weight!</span>';
+  } else {
+    const action = diff > 0 ? 'lose' : 'gain';
+    deltaEl.innerHTML = 'To reach ideal weight: <strong style="color:#3b82f6">'+action+' '+fmt(Math.abs(diff))+'</strong>';
+  }
+
+  const noteEl = document.getElementById('age-note');
+  if (age < 18) {
+    noteEl.textContent = 'BMI interpretation differs for children & teens. Consult a paediatrician.';
+    noteEl.style.display = 'block';
+  } else if (age >= 65) {
+    noteEl.textContent = 'For older adults (65+), a BMI of 23-27 may be more optimal due to muscle loss.';
+    noteEl.style.display = 'block';
+  } else {
+    noteEl.style.display = 'none';
+  }
+
+  document.getElementById('result-card').style.display = 'block';
+  document.getElementById('result-card').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>
